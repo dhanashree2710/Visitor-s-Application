@@ -94,142 +94,145 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     if (width >= 600) return 3;
     return 2;
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+@override
+Widget build(BuildContext context) {
+  final screenWidth = MediaQuery.of(context).size.width;
   final isDesktop = screenWidth >= 1024;
 
-    return CommonScaffold(
-      title: "",
-      role: widget.role,
-      body: RefreshIndicator(
+  return CommonScaffold(
+    title: "",
+    role: widget.role,
+    body: RefreshIndicator(
       onRefresh: _fetchData,
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : LayoutBuilder(
               builder: (context, constraints) {
-                return SingleChildScrollView(
+                return ListView(
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 👇 Row with Welcome + Refresh button (only desktop)
+                  children: [
+                    // 👇 Row with Welcome + Refresh button (desktop only)
                     Row(
-  children: [
-    Expanded(
-      child: Center(
-        child: Text(
-          "Welcome Admin!!",
-          style: const TextStyle(
-            fontSize: 24,
-            color: KDRTColors.darkBlue,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    ),
-    if (isDesktop)
-      ElevatedButton.icon(
-        onPressed: () async {
-          setState(() => _isLoading = true);
-          await _fetchData();
-        },
-       
-        label: const Text("Refresh",
-        style: const TextStyle(
-            fontSize: 12,
-            color: KDRTColors.white,
-            fontWeight: FontWeight.bold,
-          ),),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: KDRTColors.darkBlue,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-  ],
-)
-,
-                      const SizedBox(height: 40),
-                      GridView.count(
-                        crossAxisCount: _getCrossAxisCount(screenWidth),
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        childAspectRatio: 1.2,
-                        children: [
-                          _buildOutlinedCard("Employees", _totalEmployees, () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                   EmployeeListScreen(),
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              "Welcome Admin!!",
+                              style: const TextStyle(
+                                fontSize: 24,
+                                color: KDRTColors.darkBlue,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          }),
-                          _buildOutlinedCard("Visitors", _totalVisitors, () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>AllVisitorsList()),
-                            );
-                          }),
-                          _buildOutlinedCard("Departments", _totalDepartments,
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DepartmentListScreen()),
-                            );
-                          }),
-                          _buildOutlinedCard("Grievances", _totalGrievances,
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      AdminGrievanceScreen()),
-                            );
-                          }),
-                        ],
-                      ),
-                      const SizedBox(height: 40),
-                      CustomButtonField(
-                        label: "Add Employee",
-                        width: double.infinity,
-                        height: 50,
-                        onPressed: () {
+                            ),
+                          ),
+                        ),
+                        if (isDesktop)
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              setState(() => _isLoading = true);
+                              await _fetchData();
+                            },
+                            icon: const Icon(Icons.refresh, color: KDRTColors.white, size: 16),
+                            label: const Text(
+                              "Refresh",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: KDRTColors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: KDRTColors.darkBlue,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+
+                    // 👇 Cards Grid
+                    GridView.count(
+                      crossAxisCount: _getCrossAxisCount(screenWidth),
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: 1.2,
+                      children: [
+                        _buildOutlinedCard("Employees", _totalEmployees, () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => EmployeeRegisterPage(
-                                        role: widget.role,
-                                      )));
-                        },
-                      ),
-                      const SizedBox(height: 40),
-                      CustomButtonField(
-                        label: "Add Department",
-                        width: double.infinity,
-                        height: 50,
-                        onPressed: () {
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EmployeeListScreen(),
+                            ),
+                          );
+                        }),
+                        _buildOutlinedCard("Visitors", _totalVisitors, () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DepartmentRegisterPage()));
-                        },
-                      ),
-                    ],
-                  ),
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllVisitorsList(),
+                            ),
+                          );
+                        }),
+                        _buildOutlinedCard("Departments", _totalDepartments, () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DepartmentListScreen(),
+                            ),
+                          );
+                        }),
+                        _buildOutlinedCard("Grievances", _totalGrievances, () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AdminGrievanceScreen(),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+
+                    // 👇 Add Employee Button
+                    CustomButtonField(
+                      label: "Add Employee",
+                      width: double.infinity,
+                      height: 50,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EmployeeRegisterPage(role: widget.role),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 40),
+
+                    // 👇 Add Department Button
+                    CustomButtonField(
+                      label: "Add Department",
+                      width: double.infinity,
+                      height: 50,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DepartmentRegisterPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 );
-              }),
-      ),
-    );
-  }
+              },
+            ),
+    ),
+  );
+}
 }
