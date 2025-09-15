@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.visitor_grievance_application">
 
+    <!-- Required for API calls -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="visitor_grievance_application"
         android:name="${applicationName}"
