@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:visitors_and_grievance_application/modules/Admin/presentation/views/home_dashboard.dart';
+import 'package:visitors_and_grievance_application/modules/Admin/presentation/widgets/employee_list.dart';
 import 'package:visitors_and_grievance_application/utils/common/custom_button.dart';
 import 'package:visitors_and_grievance_application/utils/common/pop_up_screen.dart';
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
@@ -217,6 +219,7 @@ class _EmployeeRegisterPageState extends State<EmployeeRegisterPage> {
       isSuccess: true,
       title: "Registration Successful",
       description: "Employee has been registered successfully.",
+      nextScreen:EmployeeListScreen(),
     );
 
     /// ✅ Reset fields

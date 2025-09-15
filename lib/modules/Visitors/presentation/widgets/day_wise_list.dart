@@ -211,6 +211,9 @@
 //     }
 //   }
 // }
+
+
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -235,11 +238,22 @@ class DayWiseVisitorsStatusUpdate extends StatefulWidget {
 class _DayWiseVisitorsStatusUpdateState
     extends State<DayWiseVisitorsStatusUpdate> {
   late Map<String, dynamic> visitor;
+    bool isLoading = true;
+  List<Map<String, dynamic>> _allVisitors = [];
+  List<Map<String, dynamic>> _departments = []; // fetched departments
+  final ScrollController _scrollController = ScrollController();
+
+  String? _selectedDept; // filter dept
+  String _searchName = ""; // filter visitor name
 
   @override
   void initState() {
     super.initState();
     visitor = widget.visitor;
+    
+   
+    fetchDepartments();
+    fetchVisitors();
   }
 
   @override
@@ -452,4 +466,115 @@ class _DayWiseVisitorsStatusUpdateState
       return timestamp.toString();
     }
   }
+
+
+  /// ✅ Fetch visitors with optional filters
+  Future<void> fetchVisitors() async {
+    try {
+      setState(() => isLoading = true);
+
+      var query = Supabase.instance.client.from('visitor').select();
+
+      if (_searchName.isNotEmpty) {
+        query = query.ilike('visitor_name', '%$_searchName%'); // case-insensitive
+      }
+
+      if (_selectedDept != null && _selectedDept!.isNotEmpty) {
+        query = query.eq('department', _selectedDept!);
+      }
+
+      final response = await query.order('visit_date', ascending: false);
+      final visitors = List<Map<String, dynamic>>.from(response as List);
+
+      setState(() {
+        _allVisitors = visitors;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      debugPrint("❌ Error fetching visitors: $e");
+    }
+  }
+
+  /// ✅ Fetch departments for dropdown
+  Future<void> fetchDepartments() async {
+    try {
+      final response =
+          await Supabase.instance.client.from('department').select();
+
+      setState(() {
+        _departments = List<Map<String, dynamic>>.from(response);
+      });
+    } catch (e) {
+      debugPrint("❌ Error fetching departments: $e");
+    }
+  }
+
+  /// ✅ Filter dialog with Dept + Name
+  void _openFilterDialog() {
+    String? tempDept = _selectedDept;
+    String tempName = _searchName;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text("Filter Visitors"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                /// Visitor Name input
+                TextField(
+                  controller: TextEditingController(text: tempName),
+                  decoration: const InputDecoration(
+                    labelText: "Visitor Name",
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  onChanged: (val) {
+                    tempName = val;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                /// Department dropdown
+                DropdownButtonFormField<String>(
+                  value: tempDept,
+                  items: _departments
+                      .map((dept) => DropdownMenuItem<String>(
+                            value: dept['dept_name'] as String,
+                            child: Text(dept['dept_name'] as String),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    tempDept = value;
+                  },
+                  decoration: const InputDecoration(labelText: "Department"),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedDept = tempDept;
+                  _searchName = tempName;
+                });
+                Navigator.pop(ctx);
+                fetchVisitors();
+              },
+              child: const Text("Apply"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
 }

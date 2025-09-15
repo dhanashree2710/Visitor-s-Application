@@ -1464,6 +1464,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:visitors_and_grievance_application/modules/Grievance/presentation/views/grievance_list.dart';
 import 'package:visitors_and_grievance_application/utils/common/custom_button.dart';
 import 'package:visitors_and_grievance_application/utils/common/pop_up_screen.dart';
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
@@ -1629,7 +1630,7 @@ Future<void> submitGrievance() async {
         isSuccess: true,
         title: "Success",
         description: "Your grievance has been submitted successfully.",
-        nextScreen: const RegisterGrievancePage(),
+        nextScreen: AdminGrievanceScreen(),
       );
     } catch (error) {
       print("❌ Error inserting grievance: $error");

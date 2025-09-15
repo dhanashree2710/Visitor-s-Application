@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:visitors_and_grievance_application/modules/Employee/presentation/views/employee_home_dashboard.dart';
 import 'package:visitors_and_grievance_application/modules/Login/presentation/views/reset_password.dart';
 import 'package:visitors_and_grievance_application/modules/Login/presentation/views/role_page.dart';
+import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/all_visitors_list.dart';
+import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/report_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,20 +29,6 @@ class _MyAppState extends State<MyApp> {
   final supabase = Supabase.instance.client;
  
 
-  @override
-  void initState() {
-    super.initState();
-
-    supabase.auth.onAuthStateChange.listen((data) {
-      final event = data.event;
-      if (event == AuthChangeEvent.passwordRecovery) {
-        // Navigate to Reset Password page
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
-        );
-      }
-    });
-  }
 
 
   @override
@@ -53,8 +42,9 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
-    home: RoleSelectionPage(),
-  //   home: EmployeeDashboard(role: ''),
+   // home: RoleSelectionPage(),
+     home: VisitorReportScreen(),
+  
     );
   }
 }

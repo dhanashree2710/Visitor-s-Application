@@ -53,7 +53,7 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
   Future<void> _fetchResolvedGrievances() async {
     setState(() => isLoading = true);
 
-    var query = supabase.from("grievance").select();
+    var query = supabase.from("grievance").select().eq("grievance_status", "resolved");
 
     // Status filter
     if (selectedStatus != "All") {

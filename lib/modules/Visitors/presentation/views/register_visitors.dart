@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:visitors_and_grievance_application/modules/Employee/presentation/views/employee_home_dashboard.dart';
+import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/visitor_details_list.dart';
 
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
 
@@ -105,6 +106,10 @@ Future<void> _uploadImage() async {
         'in_time': DateTime.now().toIso8601String(),
       });
 
+      // Fetch all visitors again
+    final response = await supabase.from('visitor').select();
+    final visitors = List<Map<String, dynamic>>.from(response);
+
       // Clear fields
       fullNameController.clear();
       emailController.clear();
@@ -119,7 +124,7 @@ Future<void> _uploadImage() async {
       // Navigate to Employee Dashboard
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => EmployeeDashboard(role: '', empId: '',)),
+        MaterialPageRoute(builder: (context) => DayWiseVisitorsStatusUpdate(visitors: visitors)),
       );
     } catch (e) {
       print("Error registering visitor: $e");

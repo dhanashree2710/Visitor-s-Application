@@ -165,6 +165,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:visitors_and_grievance_application/modules/Admin/presentation/views/home_dashboard.dart';
 import 'package:visitors_and_grievance_application/utils/common/custom_button.dart';
 import 'package:visitors_and_grievance_application/utils/common/pop_up_screen.dart';
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
@@ -249,6 +250,7 @@ Future<void> registerAdmin() async {
       isSuccess: true,
       title: "Registration Successful",
       description: "Admin registered and linked with authentication.",
+      nextScreen: AdminHomeScreen(role: widget.role, adminId: adminId)
     );
 
     /// ✅ Clear fields

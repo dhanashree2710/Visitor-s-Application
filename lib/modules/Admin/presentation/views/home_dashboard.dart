@@ -98,24 +98,61 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+  final isDesktop = screenWidth >= 1024;
 
     return CommonScaffold(
       title: "",
       role: widget.role,
       body: RefreshIndicator(
-        onRefresh: _fetchData,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : LayoutBuilder(builder: (context, constraints) {
+      onRefresh: _fetchData,
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Welcome Admin!!",
-                          style: TextStyle(
-                              fontSize: 24,
-                              color: KDRTColors.darkBlue,
-                              fontWeight: FontWeight.bold)),
+                      // 👇 Row with Welcome + Refresh button (only desktop)
+                    Row(
+  children: [
+    Expanded(
+      child: Center(
+        child: Text(
+          "Welcome Admin!!",
+          style: const TextStyle(
+            fontSize: 24,
+            color: KDRTColors.darkBlue,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    ),
+    if (isDesktop)
+      ElevatedButton.icon(
+        onPressed: () async {
+          setState(() => _isLoading = true);
+          await _fetchData();
+        },
+       
+        label: const Text("Refresh",
+        style: const TextStyle(
+            fontSize: 12,
+            color: KDRTColors.white,
+            fontWeight: FontWeight.bold,
+          ),),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: KDRTColors.darkBlue,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+  ],
+)
+,
                       const SizedBox(height: 40),
                       GridView.count(
                         crossAxisCount: _getCrossAxisCount(screenWidth),

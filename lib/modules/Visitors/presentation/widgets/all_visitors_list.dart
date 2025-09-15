@@ -477,13 +477,308 @@
 // }
 
 
+// import 'package:flutter/material.dart';
+// import 'package:supabase_flutter/supabase_flutter.dart';
+// import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/day_wise_list.dart';
+// import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
+
+// class AllVisitorsList extends StatefulWidget {
+//   const AllVisitorsList({super.key});
+
+//   @override
+//   _AllVisitorsListState createState() => _AllVisitorsListState();
+// }
+
+// class _AllVisitorsListState extends State<AllVisitorsList> {
+//   bool isLoading = true;
+
+//   List<Map<String, dynamic>> _allVisitors = [];
+//   List<Map<String, dynamic>> _filteredVisitors = [];
+
+//   final ScrollController _scrollController = ScrollController();
+
+//   String selectedFilter = '';
+//   String filterValue = '';
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchVisitors();
+//   }
+
+//   /// ✅ Fetch ALL visitors (no date restriction)
+//   Future<void> fetchVisitors() async {
+//     try {
+//       setState(() => isLoading = true);
+
+//       final response = await Supabase.instance.client
+//           .from('visitor')
+//           .select()
+//           .order('visit_date', ascending: false);
+
+//       List<Map<String, dynamic>> visitors =
+//           List<Map<String, dynamic>>.from(response);
+
+//       setState(() {
+//         _allVisitors = visitors;
+//         _filteredVisitors = visitors;
+//         isLoading = false;
+//       });
+
+//       debugPrint("✅ Total visitors fetched: ${_allVisitors.length}");
+//     } catch (e) {
+//       setState(() => isLoading = false);
+//       debugPrint("❌ Error fetching visitors: $e");
+//     }
+//   }
+
+//   /// Normalize strings for search
+//   String _normalize(String s) => s
+//       .toLowerCase()
+//       .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+//       .replaceAll(RegExp(r'\s+'), ' ')
+//       .trim();
+
+//   /// ✅ Apply filter
+//   void _applyFilter(String type, String value) {
+//     final query = _normalize(value);
+//     selectedFilter = type;
+//     filterValue = value;
+
+//     setState(() {
+//       if (query.isEmpty) {
+//         _filteredVisitors = List.from(_allVisitors);
+//         debugPrint("🔍 No filter applied, showing all visitors.");
+//         return;
+//       }
+
+//       _filteredVisitors = _allVisitors.where((visitor) {
+//         final rawName = (visitor['visitor_name'] ?? '').toString();
+//         final rawPhone = (visitor['visitor_phone'] ?? '').toString();
+//         final rawDept = (visitor['department'] ?? '').toString();
+//         final rawPurpose = (visitor['purpose'] ?? '').toString();
+//         final rawDate = (visitor['visit_date'] ?? '').toString();
+
+//         final name = _normalize(rawName);
+//         final phone = rawPhone;
+//         final dept = _normalize(rawDept);
+//         final purpose = _normalize(rawPurpose);
+//         final date = _normalize(rawDate);
+
+//         if (type == 'Name') {
+//           return name.contains(query);
+//         } else if (type == 'Phone') {
+//           return phone.contains(query);
+//         } else if (type == 'Department') {
+//           return dept.contains(query);
+//         } else if (type == 'Purpose') {
+//           return purpose.contains(query);
+//         } else if (type == 'Date') {
+//           return date.contains(query);
+//         } else if (type == 'All') {
+//           return name.contains(query) ||
+//               phone.contains(query) ||
+//               dept.contains(query) ||
+//               purpose.contains(query) ||
+//               date.contains(query);
+//         }
+//         return false;
+//       }).toList();
+
+//       // ✅ Sort ranking for better matches
+//       int rank(Map v) {
+//         final n = _normalize((v['visitor_name'] ?? '').toString());
+//         if (n == query) return 3;
+//         if (n.startsWith(query)) return 2;
+//         if (n.contains(query)) return 1;
+//         return 0;
+//       }
+//       _filteredVisitors.sort((a, b) => rank(b).compareTo(rank(a)));
+
+//       // ✅ Print filter logs
+//       debugPrint("🔍 Filter Applied:");
+//       debugPrint("   $type filter: '$value'");
+//       debugPrint("✅ Filtered Visitors Count: ${_filteredVisitors.length}");
+//       for (var v in _filteredVisitors) {
+//         debugPrint("   - ${v['visitor_name']} (${v['visitor_phone']})");
+//       }
+//     });
+//   }
+
+//   /// ✅ Reset Filter
+//   void _resetFilter() {
+//     setState(() {
+//       selectedFilter = '';
+//       filterValue = '';
+//       _filteredVisitors = List.from(_allVisitors);
+//     });
+//     debugPrint("🔄 Filters reset. Showing all visitors.");
+//   }
+
+//   /// ✅ Show Filter Dialog
+//   void _showFilterDialog() {
+//     String selectedOption = 'All'; // default to All
+//     String inputValue = '';
+
+//     showDialog(
+//       context: context,
+//       builder: (context) {
+//         return AlertDialog(
+//           title: const Text("Filter Visitors"),
+//           content: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               DropdownButton<String>(
+//                 value: selectedOption,
+//                 items: ['All', 'Name', 'Phone', 'Department', 'Purpose', 'Date']
+//                     .map((String option) {
+//                   return DropdownMenuItem(value: option, child: Text(option));
+//                 }).toList(),
+//                 onChanged: (value) {
+//                   setState(() {
+//                     selectedOption = value!;
+//                   });
+//                 },
+//               ),
+//               TextField(
+//                 decoration: const InputDecoration(hintText: "Enter value"),
+//                 onChanged: (val) {
+//                   inputValue = val;
+//                 },
+//               ),
+//             ],
+//           ),
+//           actions: [
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.pop(context);
+//               },
+//               child: const Text("Cancel"),
+//             ),
+//             ElevatedButton(
+//               onPressed: () {
+//                 Navigator.pop(context);
+//                 _applyFilter(selectedOption, inputValue);
+//               },
+//               child: const Text("Apply"),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text(
+//           "All Visitors",
+//           style: TextStyle(color: Colors.white),
+//         ),
+//         centerTitle: true,
+//         backgroundColor: KDRTColors.darkBlue,
+//         leading: IconButton(
+//           icon: const Icon(Icons.arrow_back, color: Colors.white),
+//           onPressed: () => Navigator.pop(context),
+//         ),
+//       ),
+//       backgroundColor: Colors.white,
+//       body: Column(
+//         children: [
+//           // ✅ Filter & Reset buttons
+//           Padding(
+//             padding: const EdgeInsets.all(8.0),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 ElevatedButton.icon(
+//                   onPressed: _showFilterDialog,
+//                   icon: const Icon(Icons.filter_list),
+//                   label: const Text("Filter"),
+//                 ),
+//                 ElevatedButton.icon(
+//                   onPressed: _resetFilter,
+//                   icon: const Icon(Icons.refresh),
+//                   label: const Text("Reset"),
+//                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+//                 ),
+//               ],
+//             ),
+//           ),
+
+//           if (selectedFilter.isNotEmpty && filterValue.isNotEmpty)
+//             Padding(
+//               padding: const EdgeInsets.all(8.0),
+//               child: Text(
+//                 "Applied Filters: $selectedFilter = $filterValue",
+//                 style:
+//                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//               ),
+//             ),
+
+//           Expanded(
+//             child: RefreshIndicator(
+//               onRefresh: fetchVisitors,
+//               child: isLoading
+//                   ? const Center(child: CircularProgressIndicator())
+//                   : _filteredVisitors.isEmpty
+//                       ? const Center(child: Text("No visitors found!"))
+//                       : LayoutBuilder(
+//                           builder: (context, constraints) {
+//                             bool isWideScreen = constraints.maxWidth > 800;
+//                             if (isWideScreen) {
+//                               return GridView.builder(
+//                                 controller: _scrollController,
+//                                 padding: const EdgeInsets.all(16),
+//                                 gridDelegate:
+//                                     SliverGridDelegateWithFixedCrossAxisCount(
+//                                   crossAxisCount:
+//                                       constraints.maxWidth > 1200 ? 4 : 3,
+//                                   mainAxisSpacing: 12,
+//                                   crossAxisSpacing: 12,
+//                                   childAspectRatio: 4 / 3,
+//                                 ),
+//                                 itemCount: _filteredVisitors.length,
+//                                 itemBuilder: (context, index) {
+//                                   return DayWiseVisitorsStatusUpdate(
+//                                       visitor: _filteredVisitors[index]);
+//                                 },
+//                               );
+//                             } else {
+//                               return ListView.builder(
+//                                 controller: _scrollController,
+//                                 padding: const EdgeInsets.all(16),
+//                                 itemCount: _filteredVisitors.length,
+//                                 itemBuilder: (context, index) {
+//                                   return Padding(
+//                                     padding:
+//                                         const EdgeInsets.only(bottom: 12.0),
+//                                     child: DayWiseVisitorsStatusUpdate(
+//                                         visitor: _filteredVisitors[index]),
+//                                   );
+//                                 },
+//                               );
+//                             }
+//                           },
+//                         ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/day_wise_list.dart';
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
 
 class AllVisitorsList extends StatefulWidget {
-  const AllVisitorsList({super.key});
+  final String? selectedDeptFromNav; // preload when user comes from DepartmentListScreen
+
+  const AllVisitorsList({super.key, this.selectedDeptFromNav});
 
   @override
   _AllVisitorsListState createState() => _AllVisitorsListState();
@@ -491,174 +786,120 @@ class AllVisitorsList extends StatefulWidget {
 
 class _AllVisitorsListState extends State<AllVisitorsList> {
   bool isLoading = true;
-
   List<Map<String, dynamic>> _allVisitors = [];
-  List<Map<String, dynamic>> _filteredVisitors = [];
-
+  List<Map<String, dynamic>> _departments = []; // fetched departments
   final ScrollController _scrollController = ScrollController();
 
-  String selectedFilter = '';
-  String filterValue = '';
+  String? _selectedDept; // filter dept
+  String _searchName = ""; // filter visitor name
 
   @override
   void initState() {
     super.initState();
+    _selectedDept = widget.selectedDeptFromNav;
+    fetchDepartments();
     fetchVisitors();
   }
 
-  /// ✅ Fetch ALL visitors (no date restriction)
+  /// ✅ Fetch visitors with optional filters
   Future<void> fetchVisitors() async {
     try {
       setState(() => isLoading = true);
 
-      final response = await Supabase.instance.client
-          .from('visitor')
-          .select()
-          .order('visit_date', ascending: false);
+      var query = Supabase.instance.client.from('visitor').select();
 
-      List<Map<String, dynamic>> visitors =
-          List<Map<String, dynamic>>.from(response);
+      if (_searchName.isNotEmpty) {
+        query = query.ilike('visitor_name', '%$_searchName%'); // case-insensitive
+      }
+
+      if (_selectedDept != null && _selectedDept!.isNotEmpty) {
+        query = query.eq('department', _selectedDept!);
+      }
+
+      final response = await query.order('visit_date', ascending: false);
+      final visitors = List<Map<String, dynamic>>.from(response as List);
 
       setState(() {
         _allVisitors = visitors;
-        _filteredVisitors = visitors;
         isLoading = false;
       });
-
-      debugPrint("✅ Total visitors fetched: ${_allVisitors.length}");
     } catch (e) {
       setState(() => isLoading = false);
       debugPrint("❌ Error fetching visitors: $e");
     }
   }
 
-  /// Normalize strings for search
-  String _normalize(String s) => s
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  /// ✅ Fetch departments for dropdown
+  Future<void> fetchDepartments() async {
+    try {
+      final response =
+          await Supabase.instance.client.from('department').select();
 
-  /// ✅ Apply filter
-  void _applyFilter(String type, String value) {
-    final query = _normalize(value);
-    selectedFilter = type;
-    filterValue = value;
-
-    setState(() {
-      if (query.isEmpty) {
-        _filteredVisitors = List.from(_allVisitors);
-        debugPrint("🔍 No filter applied, showing all visitors.");
-        return;
-      }
-
-      _filteredVisitors = _allVisitors.where((visitor) {
-        final rawName = (visitor['visitor_name'] ?? '').toString();
-        final rawPhone = (visitor['visitor_phone'] ?? '').toString();
-        final rawDept = (visitor['department'] ?? '').toString();
-        final rawPurpose = (visitor['purpose'] ?? '').toString();
-        final rawDate = (visitor['visit_date'] ?? '').toString();
-
-        final name = _normalize(rawName);
-        final phone = rawPhone;
-        final dept = _normalize(rawDept);
-        final purpose = _normalize(rawPurpose);
-        final date = _normalize(rawDate);
-
-        if (type == 'Name') {
-          return name.contains(query);
-        } else if (type == 'Phone') {
-          return phone.contains(query);
-        } else if (type == 'Department') {
-          return dept.contains(query);
-        } else if (type == 'Purpose') {
-          return purpose.contains(query);
-        } else if (type == 'Date') {
-          return date.contains(query);
-        } else if (type == 'All') {
-          return name.contains(query) ||
-              phone.contains(query) ||
-              dept.contains(query) ||
-              purpose.contains(query) ||
-              date.contains(query);
-        }
-        return false;
-      }).toList();
-
-      // ✅ Sort ranking for better matches
-      int rank(Map v) {
-        final n = _normalize((v['visitor_name'] ?? '').toString());
-        if (n == query) return 3;
-        if (n.startsWith(query)) return 2;
-        if (n.contains(query)) return 1;
-        return 0;
-      }
-      _filteredVisitors.sort((a, b) => rank(b).compareTo(rank(a)));
-
-      // ✅ Print filter logs
-      debugPrint("🔍 Filter Applied:");
-      debugPrint("   $type filter: '$value'");
-      debugPrint("✅ Filtered Visitors Count: ${_filteredVisitors.length}");
-      for (var v in _filteredVisitors) {
-        debugPrint("   - ${v['visitor_name']} (${v['visitor_phone']})");
-      }
-    });
+      setState(() {
+        _departments = List<Map<String, dynamic>>.from(response);
+      });
+    } catch (e) {
+      debugPrint("❌ Error fetching departments: $e");
+    }
   }
 
-  /// ✅ Reset Filter
-  void _resetFilter() {
-    setState(() {
-      selectedFilter = '';
-      filterValue = '';
-      _filteredVisitors = List.from(_allVisitors);
-    });
-    debugPrint("🔄 Filters reset. Showing all visitors.");
-  }
-
-  /// ✅ Show Filter Dialog
-  void _showFilterDialog() {
-    String selectedOption = 'All'; // default to All
-    String inputValue = '';
+  /// ✅ Filter dialog with Dept + Name
+  void _openFilterDialog() {
+    String? tempDept = _selectedDept;
+    String tempName = _searchName;
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Filter Visitors"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButton<String>(
-                value: selectedOption,
-                items: ['All', 'Name', 'Phone', 'Department', 'Purpose', 'Date']
-                    .map((String option) {
-                  return DropdownMenuItem(value: option, child: Text(option));
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedOption = value!;
-                  });
-                },
-              ),
-              TextField(
-                decoration: const InputDecoration(hintText: "Enter value"),
-                onChanged: (val) {
-                  inputValue = val;
-                },
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                /// Visitor Name input
+                TextField(
+                  controller: TextEditingController(text: tempName),
+                  decoration: const InputDecoration(
+                    labelText: "Visitor Name",
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  onChanged: (val) {
+                    tempName = val;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                /// Department dropdown
+                DropdownButtonFormField<String>(
+                  value: tempDept,
+                  items: _departments
+                      .map((dept) => DropdownMenuItem<String>(
+                            value: dept['dept_name'] as String,
+                            child: Text(dept['dept_name'] as String),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    tempDept = value;
+                  },
+                  decoration: const InputDecoration(labelText: "Department"),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(ctx),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
-                _applyFilter(selectedOption, inputValue);
+                setState(() {
+                  _selectedDept = tempDept;
+                  _searchName = tempName;
+                });
+                Navigator.pop(ctx);
+                fetchVisitors();
               },
               child: const Text("Apply"),
             ),
@@ -686,43 +927,61 @@ class _AllVisitorsListState extends State<AllVisitorsList> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // ✅ Filter & Reset buttons
+          /// 🔹 Filter & Refresh buttons
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(12.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton.icon(
-                  onPressed: _showFilterDialog,
-                  icon: const Icon(Icons.filter_list),
-                  label: const Text("Filter"),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KDRTColors.darkBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.filter_list, color: Colors.white),
+                    label: const Text("Filter",
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                    onPressed: _openFilterDialog,
+                  ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: _resetFilter,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("Reset"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KDRTColors.darkBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    label: const Text("Refresh",
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                   onPressed: () {
+                        setState(() {
+                          _searchName = "";     // 🔹 Clear name filter
+                          _selectedDept = null; // 🔹 Clear department filter
+                        });
+                        fetchVisitors(); // fetch all visitors again
+                      },
+                  ),
                 ),
               ],
             ),
           ),
 
-          if (selectedFilter.isNotEmpty && filterValue.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Applied Filters: $selectedFilter = $filterValue",
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-
+          /// 🔹 Visitors list
           Expanded(
             child: RefreshIndicator(
               onRefresh: fetchVisitors,
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _filteredVisitors.isEmpty
+                  : _allVisitors.isEmpty
                       ? const Center(child: Text("No visitors found!"))
                       : LayoutBuilder(
                           builder: (context, constraints) {
@@ -739,23 +998,23 @@ class _AllVisitorsListState extends State<AllVisitorsList> {
                                   crossAxisSpacing: 12,
                                   childAspectRatio: 4 / 3,
                                 ),
-                                itemCount: _filteredVisitors.length,
+                                itemCount: _allVisitors.length,
                                 itemBuilder: (context, index) {
                                   return DayWiseVisitorsStatusUpdate(
-                                      visitor: _filteredVisitors[index]);
+                                      visitor: _allVisitors[index]);
                                 },
                               );
                             } else {
                               return ListView.builder(
                                 controller: _scrollController,
                                 padding: const EdgeInsets.all(16),
-                                itemCount: _filteredVisitors.length,
+                                itemCount: _allVisitors.length,
                                 itemBuilder: (context, index) {
                                   return Padding(
                                     padding:
                                         const EdgeInsets.only(bottom: 12.0),
                                     child: DayWiseVisitorsStatusUpdate(
-                                        visitor: _filteredVisitors[index]),
+                                        visitor: _allVisitors[index]),
                                   );
                                 },
                               );

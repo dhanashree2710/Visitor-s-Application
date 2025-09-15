@@ -190,7 +190,8 @@
 //       ),
 //     );
 //   }
-// }
+// // }
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:visitors_and_grievance_application/modules/Admin/presentation/views/home_dashboard.dart';
@@ -212,8 +213,6 @@ class _UserLoginPageState extends State<UserLoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
-
-
 
   /// ✅ Main login function
   Future<void> loginUser() async {
@@ -253,14 +252,19 @@ class _UserLoginPageState extends State<UserLoginPage> {
   /// ✅ Fetch role and ID (adminId or empId) and navigate accordingly
   Future<void> _fetchUserRoleAndNavigate(String email) async {
     try {
+      print("🔍 Fetching role and IDs for email: $email");
+
       final userData = await supabase
           .from('users')
           .select('role, emp_id, admin_id')
           .eq('user_email', email)
-          .maybeSingle();
+          .maybeSingle(); // ✅ FIX: no `.users` here!
+
+      print("📦 Supabase response: $userData");
 
       if (userData == null) {
         _showError("User record not found in database");
+        print("❌ No user found for email: $email");
         return;
       }
 
@@ -268,7 +272,10 @@ class _UserLoginPageState extends State<UserLoginPage> {
       final empId = userData['emp_id'];
       final adminId = userData['admin_id'];
 
+      print("✅ User role: $role | empId: $empId | adminId: $adminId");
+
       if (role == 'admin') {
+        print("➡️ Navigating to AdminHomeScreen...");
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -276,6 +283,7 @@ class _UserLoginPageState extends State<UserLoginPage> {
           ),
         );
       } else if (role == 'employee') {
+        print("➡️ Navigating to EmployeeDashboard...");
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -284,20 +292,32 @@ class _UserLoginPageState extends State<UserLoginPage> {
         );
       } else {
         _showError("Invalid role assigned to user");
+        print("⚠️ Invalid role: $role");
       }
     } catch (e) {
       _showError("Failed to fetch role: $e");
+      print("❌ Error fetching role for $email: $e");
     }
   }
 
   void _showError(String msg) {
-    showCustomAlert(context,
-        isSuccess: false, title: "Error", description: msg);
+    print("❌ ERROR: $msg");
+    showCustomAlert(
+      context,
+      isSuccess: false,
+      title: "Error",
+      description: msg,
+    );
   }
 
   void _showSuccess(String msg) {
-    showCustomAlert(context,
-        isSuccess: true, title: "Success", description: msg);
+    print("✅ SUCCESS: $msg");
+    showCustomAlert(
+      context,
+      isSuccess: true,
+      title: "Success",
+      description: msg,
+    );
   }
 
   InputDecoration customInputDecoration(String label) {
@@ -324,12 +344,12 @@ class _UserLoginPageState extends State<UserLoginPage> {
       appBar: AppBar(
         backgroundColor: KDRTColors.darkBlue,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Center(
-            child: Container(
-                margin: const EdgeInsets.only(right: 50),
-                child: const Text("Login",
-                    style: TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center))),
+        title: const Center(
+          child: Text(
+            "Login",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -352,40 +372,28 @@ class _UserLoginPageState extends State<UserLoginPage> {
                   decoration: customInputDecoration("Password"),
                 ),
                 const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () async {
-                      final email = emailController.text.trim();
-                      if (email.isNotEmpty) {
-                        await supabase.auth.resetPasswordForEmail(email);
-                        _showSuccess("Password reset email sent to $email");
-                      } else {
-                        _showError("Enter email to reset password");
-                      }
-                    },
-                    child: GestureDetector(
-                      onTap: ()  async {
-                        final email = emailController.text.trim();
-                        if (email.isNotEmpty) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ForgotPasswordPage(),
-                            ),
-                          );
-                        } else {
-                          _showError("Enter email to reset password");
-                        }
-                      },
-                      
-                      child: Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: KDRTColors.darkBlue),
-                      ),
-                    ),
-                  ),
-                ),
+                // Align(
+                //   alignment: Alignment.centerRight,
+                //   child: GestureDetector(
+                //     onTap: () async {
+                //       final email = emailController.text.trim();
+                //       if (email.isNotEmpty) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (_) => const ForgotPasswordView(),
+                //           ),
+                //         );
+                //       } else {
+                //         _showError("Enter email to reset password");
+                //       }
+                //     },
+                //     child: Text(
+                //       "Forgot Password?",
+                //       style: TextStyle(color: KDRTColors.darkBlue),
+                //     ),
+                //   ),
+                // ),
                 const SizedBox(height: 20),
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
