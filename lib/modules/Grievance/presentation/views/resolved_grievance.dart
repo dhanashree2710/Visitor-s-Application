@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
 
 class ResolvedGrievanceScreen extends StatefulWidget {
@@ -32,6 +35,27 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
     _fetchResolvedGrievances();
   }
 
+  /// 📂 Download and open file in native app
+  Future<void> _downloadAndOpenFile(String url, String fileName) async {
+    try {
+      final dir = await getTemporaryDirectory();
+      final filePath = "${dir.path}/$fileName";
+
+      // Download
+      await Dio().download(url, filePath);
+
+      // Open
+      await OpenFilex.open(filePath);
+    } catch (e) {
+      print("❌ Error opening file: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to open file: $e")),
+        );
+      }
+    }
+  }
+
   /// Fetch department list
   Future<void> _fetchDepartments() async {
     final response = await supabase.from("department").select();
@@ -53,14 +77,12 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
   Future<void> _fetchResolvedGrievances() async {
     setState(() => isLoading = true);
 
-    var query = supabase.from("grievance").select().eq("grievance_status", "resolved");
+    var query = supabase.from("grievance").select().eq("grievance_status", "Resolved");
 
-    // Status filter
     if (selectedStatus != "All") {
       query = query.eq("grievance_status", selectedStatus);
     }
 
-    // Category filter
     if (selectedCategory != "All") {
       final category = departments.firstWhere(
         (d) => d['dept_name'] == selectedCategory,
@@ -71,7 +93,6 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
       }
     }
 
-    // Text filters
     if (searchGrievanceId.isNotEmpty) {
       query = query.ilike("grievance_id", "%$searchGrievanceId%");
     }
@@ -92,7 +113,7 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
     });
   }
 
-  /// ✅ Bottom sheet for filters
+  /// ✅ Filter bottom sheet
   void _openFilterSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -110,7 +131,6 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                 const Text("Apply Filters",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-
                 TextField(
                   decoration: const InputDecoration(labelText: "Grievance ID"),
                   onChanged: (v) => searchGrievanceId = v,
@@ -127,9 +147,8 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                   decoration: const InputDecoration(labelText: "Phone"),
                   onChanged: (v) => searchPhone = v,
                 ),
-
                 const SizedBox(height: 12),
-               DropdownButtonFormField<String>(
+                DropdownButtonFormField<String>(
                   value: selectedStatus,
                   decoration: const InputDecoration(labelText: "Status"),
                   items: ["All", "Resolved", "Pending", "Rejected"]
@@ -137,10 +156,8 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                       .toList(),
                   onChanged: (v) => setState(() => selectedStatus = v ?? "All"),
                 ),
-
-
                 const SizedBox(height: 12),
-               DropdownButtonFormField<String>(
+                DropdownButtonFormField<String>(
                   value: selectedCategory,
                   decoration: const InputDecoration(labelText: "Category"),
                   items: [
@@ -155,8 +172,6 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                   ],
                   onChanged: (v) => setState(() => selectedCategory = v ?? "All"),
                 ),
-
-
                 const SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -167,8 +182,7 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                     Navigator.pop(context);
                     _fetchResolvedGrievances();
                   },
-                  child:
-                      const Text("Apply", style: TextStyle(color: Colors.white)),
+                  child: const Text("Apply", style: TextStyle(color: Colors.white)),
                 )
               ],
             ),
@@ -182,8 +196,7 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Resolved Grievances",
-            style: TextStyle(color: Colors.white)),
+        title: const Text("Resolved Grievances", style: TextStyle(color: Colors.white)),
         centerTitle: true,
         backgroundColor: KDRTColors.darkBlue,
         leading: IconButton(
@@ -191,52 +204,40 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
       body: Column(
         children: [
-          // ✅ Buttons below AppBar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
                 ElevatedButton.icon(
-  icon: const Icon(Icons.refresh, color: Colors.white),
-  label: const Text(
-    "Refresh",
-    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-  ),
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.green,
-  ),
-  onPressed: () {
-    setState(() {
-      searchGrievanceId = "";
-      searchName = "";
-      searchEmail = "";
-      searchPhone = "";
-      selectedStatus = "All";
-      selectedCategory = "All";
-    });
-    _fetchResolvedGrievances(); // reload fresh data
-  },
-),const SizedBox(width: 12),
-
-      // 🔍 Filter button
-      ElevatedButton.icon(
-        icon: const Icon(Icons.filter_list, color: Colors.white),
-        label: const Text(
-          "Filter",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: KDRTColors.darkBlue,
-        ),
-        onPressed: () => _openFilterSheet(context),
-      ),
-    ],
-  ),
-),
-          // ✅ Table / Loading / Empty states
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text("Refresh",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: () {
+                    setState(() {
+                      searchGrievanceId = "";
+                      searchName = "";
+                      searchEmail = "";
+                      searchPhone = "";
+                      selectedStatus = "All";
+                      selectedCategory = "All";
+                    });
+                    _fetchResolvedGrievances();
+                  },
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.filter_list, color: Colors.white),
+                  label: const Text("Filter",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: KDRTColors.darkBlue),
+                  onPressed: () => _openFilterSheet(context),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -244,19 +245,15 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                     ? const Center(
                         child: Text("No resolved grievances found",
                             style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black54,
-                                fontWeight: FontWeight.bold)))
+                                fontSize: 16, color: Colors.black54, fontWeight: FontWeight.bold)))
                     : InteractiveViewer(
                         constrained: false,
                         scaleEnabled: true,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
-                            headingRowColor:
-                                WidgetStateProperty.all(Colors.blue[900]),
-                            headingTextStyle:
-                                const TextStyle(color: Colors.white),
+                            headingRowColor: WidgetStateProperty.all(Colors.blue[900]),
+                            headingTextStyle: const TextStyle(color: Colors.white),
                             columns: const [
                               DataColumn(label: Text("Grievance ID")),
                               DataColumn(label: Text("Name")),
@@ -271,17 +268,13 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                             ],
                             rows: grievances.map((grievance) {
                               return DataRow(cells: [
-                                DataCell(Text(
-                                    grievance['grievance_id'].toString())),
+                                DataCell(Text(grievance['grievance_id'].toString())),
                                 DataCell(Text(grievance['full_name'] ?? "")),
                                 DataCell(Text(grievance['email_id'] ?? "")),
                                 DataCell(Text(grievance['phone_number'] ?? "")),
-                                DataCell(
-                                    Text(grievance['grievance_subject'] ?? "")),
-                                DataCell(
-                                    Text(grievance['grievance_details'] ?? "")),
-                                DataCell(Text(_getDepartmentName(
-                                    grievance['grievance_category']))),
+                                DataCell(Text(grievance['grievance_subject'] ?? "")),
+                                DataCell(Text(grievance['grievance_details'] ?? "")),
+                                DataCell(Text(_getDepartmentName(grievance['grievance_category']))),
                                 DataCell(Text(grievance['priority_level'] ?? "")),
                                 DataCell(
                                   Text(
@@ -296,23 +289,16 @@ class _ResolvedGrievanceScreenState extends State<ResolvedGrievanceScreen> {
                                   grievance['upload_file'] != null
                                       ? ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  KDRTColors.darkBlue),
+                                              backgroundColor: KDRTColors.darkBlue),
                                           onPressed: () async {
-                                            final Uri fileUri = Uri.parse(
-                                                grievance['upload_file']);
-                                            if (await canLaunchUrl(fileUri)) {
-                                              await launchUrl(fileUri,
-                                                  mode: LaunchMode
-                                                      .externalApplication);
-                                            }
+                                            final fileUrl = grievance['upload_file'];
+                                            final fileName = fileUrl.split("/").last;
+                                            await _downloadAndOpenFile(fileUrl, fileName);
                                           },
-                                          child: const Text(
-                                            "View",
-                                            style: TextStyle(
-                                                color: KDRTColors.white,
-                                                fontWeight: FontWeight.bold),
-                                          ),
+                                          child: const Text("View",
+                                              style: TextStyle(
+                                                  color: KDRTColors.white,
+                                                  fontWeight: FontWeight.bold)),
                                         )
                                       : const Text("No File"),
                                 ),

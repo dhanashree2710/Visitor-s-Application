@@ -773,6 +773,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/day_wise_list.dart';
+import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/visitor_details_list.dart' hide DayWiseVisitorsStatusUpdate;
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
 
 class AllVisitorsList extends StatefulWidget {
@@ -1001,7 +1002,7 @@ class _AllVisitorsListState extends State<AllVisitorsList> {
                                 itemCount: _allVisitors.length,
                                 itemBuilder: (context, index) {
                                   return DayWiseVisitorsStatusUpdate(
-                                      visitor: _allVisitors[index]);
+                                      visitors: _allVisitors[index]);
                                 },
                               );
                             } else {
@@ -1014,7 +1015,7 @@ class _AllVisitorsListState extends State<AllVisitorsList> {
                                     padding:
                                         const EdgeInsets.only(bottom: 12.0),
                                     child: DayWiseVisitorsStatusUpdate(
-                                        visitor: _allVisitors[index]),
+                                        visitors: _allVisitors[index]),
                                   );
                                 },
                               );

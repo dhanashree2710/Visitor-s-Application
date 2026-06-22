@@ -221,12 +221,12 @@ import 'package:visitors_and_grievance_application/modules/Visitors/presentation
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
 
 class DayWiseVisitorsStatusUpdate extends StatefulWidget {
-  final Map<String, dynamic> visitor;
+   final Map<String, dynamic> visitors;
   final VoidCallback? onOutTimeUpdated;
 
   const DayWiseVisitorsStatusUpdate({
     super.key,
-    required this.visitor,
+    required this.visitors,
     this.onOutTimeUpdated,
   });
 
@@ -249,7 +249,7 @@ class _DayWiseVisitorsStatusUpdateState
   @override
   void initState() {
     super.initState();
-    visitor = widget.visitor;
+    visitor = widget.visitors;
     
    
     fetchDepartments();

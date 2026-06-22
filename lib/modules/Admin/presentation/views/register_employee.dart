@@ -199,7 +199,7 @@ class _EmployeeRegisterPageState extends State<EmployeeRegisterPage> {
       'emp_name': name,
       'emp_phone': phone,
       'emp_email': email.isEmpty ? null : email,
-      'dept': selectedDeptId,
+      'emp_dept': selectedDeptId,
     }).select('emp_id').single();
 
     final empId = employeeResponse['emp_id'];

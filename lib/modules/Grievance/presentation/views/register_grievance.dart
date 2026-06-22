@@ -1586,18 +1586,22 @@ Future<void> submitGrievance() async {
      
 
       final grievanceData = {
-        
-        'full_name': fullNameController.text,
-        'email_id': emailController.text,
-        'phone_number': phoneController.text,
-        'visit_date': DateFormat('yyyy-MM-dd').format(visitDate!),
-        'grievance_subject': grievanceSubjectController.text,
-        'grievance_details': grievanceDetailsController.text,
-        'upload_file': fileUrl,
-        'priority_level': priorityLevel,
-        'grievance_category': selectedDepartmentId,
-        'grievance_status': 'Pending'
-      };
+  'full_name': fullNameController.text,
+  'email_id': emailController.text,
+  'phone_number': phoneController.text,
+  'visit_date': DateFormat('yyyy-MM-dd').format(visitDate!),
+
+  'department_id': selectedDepartmentId,
+
+  'grievance_subject': grievanceSubjectController.text,
+  'grievance_details': grievanceDetailsController.text,
+  'upload_file': fileUrl,
+  'priority_level': priorityLevel,
+
+  'grievance_category': _getDepartmentName(selectedDepartmentId),
+
+  'grievance_status': 'Pending',
+};
 
       print("✅ Grievance Data: $grievanceData");
 
@@ -1707,12 +1711,17 @@ String _getDepartmentName(String? deptId) {
 
     print("📲 WhatsApp Message:\n$message");
 
-    String phone = phoneController.text;
-    if (!phone.startsWith("+")) {
-      phone = "+91$phone"; // Default India code
-    }
+  String phone = phoneController.text.trim();
 
-    final Uri whatsappUri = Uri.parse("https://wa.me/$phone?text=${Uri.encodeComponent(message)}");
+phone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+
+if (!phone.startsWith('91')) {
+  phone = '91$phone';
+}
+
+   final whatsappUri = Uri.parse(
+  'https://wa.me/$phone?text=${Uri.encodeComponent(message)}',
+);
 
     if (await canLaunchUrl(whatsappUri)) {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);

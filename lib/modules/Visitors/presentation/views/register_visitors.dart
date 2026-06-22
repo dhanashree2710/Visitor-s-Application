@@ -4,7 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:visitors_and_grievance_application/modules/Employee/presentation/views/employee_home_dashboard.dart';
-import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/visitor_details_list.dart';
+import 'package:visitors_and_grievance_application/modules/Visitors/presentation/widgets/day_wise_list.dart';
+
 
 import 'package:visitors_and_grievance_application/utils/components/kdrt_colors.dart';
 
@@ -89,48 +90,50 @@ Future<void> _uploadImage() async {
 }
 
 
-  Future<void> registerVisitor() async {
-    if (!_formKey.currentState!.validate()) return;
+ Future<void> registerVisitor() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    try {
-      await supabase.from('visitor').insert({
-        'visitor_name': fullNameController.text.trim(),
-        'visitor_phone': phoneController.text.trim(),
-        'visitor_email': emailController.text.trim(),
-        'department': selectedDepartment ?? '',
-        'purpose': selectedPurpose ?? '',
-        'profile_img': profileUrl ?? '',
-        'visit_date': currentDate,
-        'in_time': DateTime.now().toIso8601String(),
-      });
+  try {
+    final insertedVisitor = await supabase
+        .from('visitor')
+        .insert({
+          'visitor_name': fullNameController.text.trim(),
+          'visitor_phone': phoneController.text.trim(),
+          'visitor_email': emailController.text.trim(),
+          'department': selectedDepartment ?? '',
+          'purpose': selectedPurpose ?? '',
+          'profile_img': profileUrl ?? '',
+          'visit_date': currentDate,
+          'in_time': DateTime.now().toIso8601String(),
+        })
+        .select()
+        .single();
 
-      // Fetch all visitors again
-    final response = await supabase.from('visitor').select();
-    final visitors = List<Map<String, dynamic>>.from(response);
+    fullNameController.clear();
+    emailController.clear();
+    phoneController.clear();
 
-      // Clear fields
-      fullNameController.clear();
-      emailController.clear();
-      phoneController.clear();
-      setState(() {
-        selectedDepartment = null;
-        selectedPurpose = null;
-        _image = null;
-        profileUrl = null;
-      });
+    setState(() {
+      selectedDepartment = null;
+      selectedPurpose = null;
+      _image = null;
+      profileUrl = null;
+    });
 
-      // Navigate to Employee Dashboard
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => DayWiseVisitorsStatusUpdate(visitors: visitors)),
-      );
-    } catch (e) {
-      print("Error registering visitor: $e");
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DayWiseVisitorsStatusUpdate(
+          visitors: insertedVisitor,
+        ),
+      ),
+    );
+  } catch (e) {
+    print("Error registering visitor: $e");
   }
-
+}
   InputDecoration customInputDecoration(String label, {IconData? icon}) {
     return InputDecoration(
       labelText: label,

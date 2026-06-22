@@ -232,6 +232,8 @@ class _UserLoginPageState extends State<UserLoginPage> {
         email: email,
         password: password,
       );
+      print("User: ${response.user}");
+  print("Session: ${response.session}");
 
       if (response.session == null) {
         _showError("Invalid email or password");
@@ -255,10 +257,12 @@ class _UserLoginPageState extends State<UserLoginPage> {
       print("🔍 Fetching role and IDs for email: $email");
 
       final userData = await supabase
-          .from('users')
-          .select('role, emp_id, admin_id')
-          .eq('user_email', email)
-          .maybeSingle(); // ✅ FIX: no `.users` here!
+    .from('users')
+    .select()
+    .eq('user_email', email)
+    .maybeSingle();
+
+print("📦 User Data: $userData"); // ✅ FIX: no `.users` here!
 
       print("📦 Supabase response: $userData");
 
@@ -268,10 +272,9 @@ class _UserLoginPageState extends State<UserLoginPage> {
         return;
       }
 
-      final role = userData['role'];
-      final empId = userData['emp_id'];
-      final adminId = userData['admin_id'];
-
+      final role = userData['role']?.toString() ?? '';
+final empId = userData['emp_id']?.toString() ?? '';
+final adminId = userData['admin_id']?.toString() ?? '';
       print("✅ User role: $role | empId: $empId | adminId: $adminId");
 
       if (role == 'admin') {

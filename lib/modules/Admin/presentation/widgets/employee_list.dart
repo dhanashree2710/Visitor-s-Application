@@ -43,7 +43,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
       setState(() {
         employeeList = List<Map<String, dynamic>>.from(response.map((emp) {
-          emp['dept_name'] = deptMap[emp['dept'].toString()] ?? '-';
+          emp['dept_name'] = deptMap[emp['emp_dept'].toString()] ?? '-';
           return emp;
         }));
         isLoading = false;

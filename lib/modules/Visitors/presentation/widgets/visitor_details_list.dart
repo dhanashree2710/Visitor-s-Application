@@ -347,12 +347,12 @@ class _VisitorDetailsScreenState extends State<VisitorDetailsScreen> {
 
 /// ---------------- DAY-WISE VISITORS STATUS UPDATE ----------------
 class DayWiseVisitorsStatusUpdate extends StatefulWidget {
-  final List<Map<String, dynamic>> visitors;
+  final Map<String, dynamic> visitor;
   final VoidCallback? onOutTimeUpdated;
 
   const DayWiseVisitorsStatusUpdate({
     super.key,
-    required this.visitors,
+    required this.visitor,
     this.onOutTimeUpdated,
   });
 
@@ -383,7 +383,7 @@ class _DayWiseVisitorsStatusUpdateState
     return Padding(
       padding: const EdgeInsets.all(16),
       child: GridView.builder(
-        itemCount: widget.visitors.length,
+        itemCount: widget.visitor.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           mainAxisSpacing: 16,
@@ -391,7 +391,7 @@ class _DayWiseVisitorsStatusUpdateState
           childAspectRatio: 0.8,
         ),
         itemBuilder: (context, index) {
-          return _buildVisitorCard(widget.visitors[index]);
+          return _buildVisitorCard(widget.visitor[index]);
         },
       ),
     );
@@ -404,9 +404,9 @@ class _DayWiseVisitorsStatusUpdateState
         width: 600,
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: widget.visitors.length,
+          itemCount: widget.visitor.length,
           itemBuilder: (context, index) {
-            return _buildVisitorCard(widget.visitors[index]);
+            return _buildVisitorCard(widget.visitor[index]);
           },
         ),
       ),
@@ -417,9 +417,9 @@ class _DayWiseVisitorsStatusUpdateState
   Widget _buildMobileList() {
     return ListView.builder(
       padding: const EdgeInsets.all(12),
-      itemCount: widget.visitors.length,
+      itemCount: widget.visitor.length,
       itemBuilder: (context, index) {
-        return _buildVisitorCard(widget.visitors[index]);
+        return _buildVisitorCard(widget.visitor[index]);
       },
     );
   }
